@@ -14,4 +14,6 @@ I will share my thought process over here.
 
   changing the starting command to a custom script.
 
-3. creating dotenv file and a gitignore file along with gitkeep file to commit empty files into the git
+3. creating dotenv file and a gitignore file along with gitkeep file to commit empty files into the git.
+
+4. COnnecting the MongoDB Atlas with aws server and gracefully handle its async nature with proper try catch handelling.
