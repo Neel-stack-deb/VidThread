@@ -16,7 +16,6 @@ connectToDatabase()
   process.on('SIGINT', ()=>shutdown('SIGINT'));
   process.on('SIGTERM', ()=>shutdown('SIGTERM'));
 
-  
   async function shutdown(signal) {
     console.log(`Recieved ${signal}!! Shutting down server...`);
     console.log("Closing database connection...");
