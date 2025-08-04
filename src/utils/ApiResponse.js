@@ -1,8 +1,8 @@
 export class ApiResponse {
-  comstructor(statusCode, success = true, message, data = null) {
+  comstructor(statusCode, message, data = null) {
     this.statusCode = statusCode;
     this.message = message;
-    this.success = success;
+    this.success = statusCode >= 200 && statusCode < 300 ? true : false;
     if(data){
       this.data = data;
     } 

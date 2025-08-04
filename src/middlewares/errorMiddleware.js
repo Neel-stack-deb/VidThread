@@ -8,7 +8,7 @@ export const errorMiddleware = (err, req, res, next) => {
   console.error("Error:", err);
 
   // Create an ApiResponse instance and send the response
-  const apiResponse = new ApiResponse(statusCode, false, message);
+  const apiResponse = new ApiResponse(statusCode, message);
   apiResponse.send(res);
 
 }
