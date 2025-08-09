@@ -23,3 +23,7 @@ I will share my thought process over here.
 6. We should create multiple utility files which will have bundlers and standarized error handling as well as standardized API response code.
 
 7. added error handling middleware
+
+8. added Caludinary and multer middleware for file upload
+
+9. created Routes folder and controller with app.use to connect everything.

@@ -16,3 +16,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(cookieParser());
+
+
+// Importing the user router
+import { userRouter } from './routes/user.js';
+
+//declarig the user router
+app.use("/api/v1/users",userRouter);
