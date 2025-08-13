@@ -1,8 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { errorMiddleware } from './middlewares/error.middleware.js';
-
 export const app = express();
 
 app.use(cors(
@@ -19,7 +17,7 @@ app.use(cookieParser());
 
 
 // Importing the user router
-import { userRouter } from './routes/user.js';
+import { userRouter } from './routes/user.routes.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
 //declarig the user router

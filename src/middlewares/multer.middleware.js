@@ -1,4 +1,4 @@
-import {multer} from 'multer';
+import multer from 'multer';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -26,7 +26,7 @@ const fileFilter = (req, file, cb) => {
 }
 
 
-export const upload = multer({
+export const uploads = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
   fileFilter
