@@ -17,7 +17,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Check if user already exists
-  const existingUser = await User.findOne({ userName });
+  const existingUser = await User.findOne({ $or:[{userName}, {email}] });
   if (existingUser) {
     throw new ApiError(202, "Username already exists.").res(send);
   }
@@ -51,8 +51,16 @@ export const registerUser = asyncHandler(async (req, res) => {
   });
 
 
+  //we will not send the password, __v, createdAt, updatedAt and refreshToken fields to the frontend
+
+  const createdUser = User.findOne(newUser._id).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  if(!createdUser) {
+    throw new ApiError(500, "User creation failed");
+  }
+
 
   //then we will send the response to the frontend
-  return new ApiResponse(201, "User registered successfully", newUser).send(res);
+  return new ApiResponse(201, "User registered successfully", createdUser).send(res);
   
 });  
