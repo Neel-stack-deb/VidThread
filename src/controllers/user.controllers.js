@@ -24,8 +24,8 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   //check for images and avater (all the compuslary fields)
 
-  const avaterPath = req.files['avatar'] ? req.files['avatar'][0].path : null;
-  const coverPhotoPath = req.files['coverPhoto'] ? req.files['coverPhoto'][0].path : null;
+  const avaterPath = req.files? ['avatar'][0] ?.path : null;
+  const coverPhotoPath = req.files?['coverPhoto'][0] ?.path : null;
   if(!avaterPath){
     throw new ApiError(400, "Avatar is required");
   }
@@ -53,7 +53,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   //we will not send the password, __v, createdAt, updatedAt and refreshToken fields to the frontend
 
-  const createdUser = User.findOne(newUser._id).select("-password -__v -createdAt -updatedAt -refreshToken");
+  const createdUser = await User.findOne({_id:newUser._id}).select("-password -__v -createdAt -updatedAt -refreshToken");
 
   if(!createdUser) {
     throw new ApiError(500, "User creation failed");
