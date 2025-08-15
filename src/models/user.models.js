@@ -1,5 +1,8 @@
-import { mongoose, Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 const userSchema = new Schema({
   userName: {
     type: String,
@@ -49,6 +52,14 @@ const userSchema = new Schema({
 userSchema.methods.comparePassword = async function(password){
   return await bcrypt.compare(password, this.password)
   
+};
+
+userSchema.methods.generateAccessToken = function() {
+  return jwt.sign({ userId: this._id }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRY});
+};
+
+userSchema.methods.generateRefreshToken = function() {
+  return jwt.sign({ userId: this._id }, process.env.REFRESH_TOKEN_SECRET, {expiresIn: process.env.REFRESH_TOKEN_EXPIRY});
 };
 
 userSchema.pre('save',async function (next){
