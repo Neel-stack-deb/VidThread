@@ -123,3 +123,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     refreshToken
   }).send(res);  
 });
+
+export const logoutUser = asyncHandler(async (req, res) => {
+  
+});
