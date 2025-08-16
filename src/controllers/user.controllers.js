@@ -125,5 +125,22 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-  
+  const userId = req.user._id;
+
+  // Clear the refresh token from the user document
+  await User.findByIdAndUpdate(userId,
+    { 
+      $set: {
+        refreshToken: null // Clear the refresh token
+      }
+    },
+    { 
+      new: true
+    })
+
+  // Clear cookies
+  res.clearCookie("refreshToken");
+  res.clearCookie("accessToken");
+
+  return new ApiResponse(200, "Logout successful").send(res);
 });
