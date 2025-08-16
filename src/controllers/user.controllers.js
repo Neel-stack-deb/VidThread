@@ -63,4 +63,63 @@ export const registerUser = asyncHandler(async (req, res) => {
   //then we will send the response to the frontend
   return new ApiResponse(201, "User registered successfully", createdUser).send(res);
   
-});  
+}); 
+
+const generateAccessTokenAndRefreshToken = async (user) => {
+  try {
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    // Save the refresh token in the user document
+    user.refreshToken = refreshToken;
+    await user.save();
+    // Return both tokens
+    return { accessToken, refreshToken };
+
+  } catch (error) {
+    console.log("Something went wrong while generating tokens", error);
+    throw new ApiError(500, "Internal server error");
+  }
+};
+
+export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password, userName } = res.body;
+  if(!email && !userName) {
+    throw new ApiError(400, "Email or Username is required");
+  }
+
+  if(!password) {
+    throw new ApiError(400, "Password is required");
+  }
+
+  // Find user by email or username
+  const user = await User.findOne({ $or: [{ email }, { userName }]
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Check password
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid password");
+  }
+  // Generate tokens
+  const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user);
+
+  // Send response with tokens and user data
+  const userData = await User.findById(user._id).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  const options = {
+    httpOnly: true,
+    secure: true, // Set secure flag in production
+  }
+
+  res.cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, options);
+  return new ApiResponse(200, "Login successful", {
+    user: userData,
+    accessToken,
+    refreshToken
+  }).send(res);  
+});
