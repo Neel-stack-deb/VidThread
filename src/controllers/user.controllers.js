@@ -136,11 +136,17 @@ export const logoutUser = asyncHandler(async (req, res) => {
     },
     { 
       new: true
-    })
+    }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true, // Set secure flag in production
+  }
 
   // Clear cookies
-  res.clearCookie("refreshToken");
-  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken", options);
+  res.clearCookie("accessToken", options);
 
   return new ApiResponse(200, "Logout successful").send(res);
 });

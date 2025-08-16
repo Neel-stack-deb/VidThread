@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError";
 dotenv.config();
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-export const verifyJWT =asyncHandler(async (req, res, next) => {
+export const verifyJWT =asyncHandler(async (req, _, next) => {
   const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
 
   if (!token) {
