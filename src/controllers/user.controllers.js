@@ -138,7 +138,7 @@ export const logoutUser = asyncHandler(async (req, res) => {
       }
     },
     { 
-      new: true
+      new: true // in order to get the updated document
     }
   );
 
@@ -215,4 +215,75 @@ export const changePassword = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   return new ApiResponse(200, "Password changed successfully").send(res);
+});
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Exclude sensitive fields
+  const userData = await User.findById(user._id).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  return new ApiResponse(200, "User retrieved successfully", userData).send(res);
+});
+
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const { fullName, userName, email } = req.body;
+  const userId = req.user._id;
+
+  if (!fullName || !userName || !email) {
+    throw new ApiError(400, "Full name, username and email are required");
+  }
+
+  const user = await User.findByIdAndUpdate(userId,
+  {
+    $set: {
+      fullName: fullName.trim(),
+      userName: userName.trim(),
+      email: email.trim()
+    }
+
+  },{
+    new: true, // Return the updated document
+  }).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return new ApiResponse(200, "User profile updated successfully", user).send(res);
+});
+
+export const updateUserAvatarOrCoverPhoto = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const avatarPath = req.files?.avatar?.[0]?.path;
+  const coverPhotoPath = req.files?.coverPhoto?.[0]?.path;
+
+  if (!avatarPath && !coverPhotoPath) {
+    throw new ApiError(400, "At least one of avatar or cover photo is required");
+  }
+
+  const updateData = {};
+  if (avatarPath) {
+    updateData.avatar = await uploadImage(avatarPath);
+  }
+  if (coverPhotoPath) {
+    updateData.coverImage = await uploadImage(coverPhotoPath);
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(userId,
+  {
+    $set: updateData
+  }, 
+  {
+    new: true
+  }).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return new ApiResponse(200, "User profile updated successfully", updatedUser).send(res);
 });
