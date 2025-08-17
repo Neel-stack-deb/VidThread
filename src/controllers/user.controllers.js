@@ -2,6 +2,9 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { User } from '../models/user.models.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const { uploadImage } = await import('../utils/claudinary.js');
 
@@ -71,7 +74,7 @@ const generateAccessTokenAndRefreshToken = async (user) => {
     const refreshToken = user.generateRefreshToken();
     // Save the refresh token in the user document
     user.refreshToken = refreshToken;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
     // Return both tokens
     return { accessToken, refreshToken };
 
@@ -81,7 +84,7 @@ const generateAccessTokenAndRefreshToken = async (user) => {
   }
 };
 
-export const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (_, res) => {
   const { email, password, userName } = res.body;
   if(!email && !userName) {
     throw new ApiError(400, "Email or Username is required");
@@ -149,4 +152,44 @@ export const logoutUser = asyncHandler(async (req, res) => {
   res.clearCookie("accessToken", options);
 
   return new ApiResponse(200, "Logout successful").send(res);
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.cookies || req.body;
+  if(!refreshToken) {
+    throw new ApiError(401, "Refresh token is required");
+  }
+
+
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  const user = await User.findById(decoded.userId);
+  if (!user || user.refreshToken !== refreshToken) {
+    throw new ApiError(404, "User not found or refresh token mismatch");
+  }
+  // Find user by refresh token
+  // const user = await User.findOne({ refreshToken });
+
+  // if (!user) {
+  //   throw new ApiError(404, "User not found");
+  // }
+
+  // Generate new access token
+  const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenAndRefreshToken(user);
+  const options = {
+    httpOnly: true,
+    secure: true, // Set secure flag in production
+  }
+  res.cookie("refreshToken", newRefreshToken, options)
+    .cookie("accessToken", accessToken, options);
+
+  // Send response with new tokens and user data
+  return new ApiResponse(200, "Access token refreshed successfully", {
+    accessToken,
+    refreshToken: newRefreshToken}).send(res);
 });
