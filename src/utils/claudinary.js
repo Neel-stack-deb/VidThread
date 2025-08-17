@@ -19,11 +19,11 @@ export const uploadImage = async (filePath) => {
       unique_filename: false,
       use_filename: true
     });
-    await fs.unlink(filePath); // Remove the file from local storage after upload
+    fs.unlink(filePath); // Remove the file from local storage after upload
     return result.secure_url; // Return the URL of the uploaded image
   } catch (error) {
     console.error('Error uploading image to Cloudinary:', error.message);
-    await fs.unlink(filePath); // Ensure the file is removed even if upload fails
+    fs.unlink(filePath); // Ensure the file is removed even if upload fails
     return null;
   }
 }

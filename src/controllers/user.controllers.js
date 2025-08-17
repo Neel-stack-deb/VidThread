@@ -256,34 +256,47 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   return new ApiResponse(200, "User profile updated successfully", user).send(res);
 });
 
-export const updateUserAvatarOrCoverPhoto = asyncHandler(async (req, res) => {
+export const updateUserAvatar = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const avatarPath = req.files?.avatar?.[0]?.path;
-  const coverPhotoPath = req.files?.coverPhoto?.[0]?.path;
+  const avatarFile = req.file;
 
-  if (!avatarPath && !coverPhotoPath) {
-    throw new ApiError(400, "At least one of avatar or cover photo is required");
+  if (!avatarFile) {
+    throw new ApiError(400, "Avatar image is required");
   }
 
-  const updateData = {};
-  if (avatarPath) {
-    updateData.avatar = await uploadImage(avatarPath);
-  }
-  if (coverPhotoPath) {
-    updateData.coverImage = await uploadImage(coverPhotoPath);
-  }
+  const avatarUrl = await uploadImage(avatarFile.path);
 
-  const updatedUser = await User.findByIdAndUpdate(userId,
-  {
-    $set: updateData
-  }, 
-  {
-    new: true
-  }).select("-password -__v -createdAt -updatedAt -refreshToken");
+  const updatedUser = await User.findByIdAndUpdate(userId, 
+    { $set: { avatar: avatarUrl } }, 
+    { new: true }
+  ).select("-password -__v -createdAt -updatedAt -refreshToken");
 
   if (!updatedUser) {
     throw new ApiError(404, "User not found");
   }
 
-  return new ApiResponse(200, "User profile updated successfully", updatedUser).send(res);
+  return new ApiResponse(200, "Avatar updated successfully", updatedUser).send(res);
 });
+
+export const updateUserCoverPhoto = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const coverPhotoFile = req.file;
+
+  if (!coverPhotoFile) {
+    throw new ApiError(400, "Cover photo image is required");
+  }
+
+  const coverPhotoUrl = await uploadImage(coverPhotoFile.path);
+
+  const updatedUser = await User.findByIdAndUpdate(userId, 
+    { $set: { coverImage: coverPhotoUrl } }, 
+    { new: true }
+  ).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return new ApiResponse(200, "Cover photo updated successfully", updatedUser).send(res);
+});
+
