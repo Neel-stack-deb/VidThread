@@ -320,3 +320,60 @@ export const updateUserCoverPhoto = asyncHandler(async (req, res) => {
   return new ApiResponse(200, "Cover photo updated successfully", updatedUser).send(res);
 });
 
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const {username} = req.params;
+  if(!username) {
+    throw new ApiError(400, "Username is required");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {username: username.toLowerCase()}
+    },
+    {
+      $lookup:  {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers"
+      }
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscriptions"
+      }
+    },
+    {
+      $addFields: {
+        subscriberCount: { $size: "$subscribers" },
+        subscriptionCount: { $size: "$subscriptions" },
+        isSubscribed: {
+          $in: [req.user._id, "$subscribers.subscriber"]
+        }
+      }
+    },
+    {
+      $project: {
+        userName: 1,
+        fullName: 1,
+        email: 1,
+        avatar: 1,
+        coverImage: 1,
+        subscriberCount: 1,
+        subscriptionCount: 1,
+        isSubscribed: 1
+      }
+    }
+  ]);
+
+  if (!channel || channel.length === 0) {
+    throw new ApiError(404, "Channel not found");
+  }
+
+  const channelData = channel[0];
+  return new ApiResponse(200, "Channel profile retrieved successfully", channelData).send(res);
+});
+
