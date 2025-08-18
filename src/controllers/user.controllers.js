@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const { uploadImage } = await import('../utils/claudinary.js');
+const { uploadImage, deleteImage } = await import('../utils/claudinary.js');
 
 export const registerUser = asyncHandler(async (req, res) => {
   //First we will take the data from the frontend
@@ -264,17 +264,27 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar image is required");
   }
 
-  const avatarUrl = await uploadImage(avatarFile.path);
-
-  const updatedUser = await User.findByIdAndUpdate(userId, 
-    { $set: { avatar: avatarUrl } }, 
-    { new: true }
-  ).select("-password -__v -createdAt -updatedAt -refreshToken");
-
-  if (!updatedUser) {
+  // ✅ Step 1: Find the user (so we know the old avatar)
+  const user = await User.findById(userId);
+  if (!user) {
     throw new ApiError(404, "User not found");
   }
 
+  // ✅ Step 2: Upload the new avatar
+  const avatarUrl = await uploadImage(avatarFile.path);
+
+  // ✅ Step 3: Delete the old avatar from Cloudinary (if exists)
+  if (user.avatar) {
+    await deleteImage(user.avatar); // pass old avatar URL to your utility
+  }
+
+  // ✅ Step 4: Update user record with new avatar
+  const updatedUser = User.findByIdAndUpdate(userId,
+    { $set: { avatar: avatarUrl } },
+    { new: true } // Return the updated document
+  ).select("-password -__v -createdAt -updatedAt -refreshToken")
+
+  // ✅ Step 5: Send response
   return new ApiResponse(200, "Avatar updated successfully", updatedUser).send(res);
 });
 
@@ -286,17 +296,27 @@ export const updateUserCoverPhoto = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Cover photo image is required");
   }
 
-  const coverPhotoUrl = await uploadImage(coverPhotoFile.path);
-
-  const updatedUser = await User.findByIdAndUpdate(userId, 
-    { $set: { coverImage: coverPhotoUrl } }, 
-    { new: true }
-  ).select("-password -__v -createdAt -updatedAt -refreshToken");
-
-  if (!updatedUser) {
+  // ✅ Step 1: Find the user to get the old cover photo
+  const user = await User.findById(userId);
+  if (!user) {
     throw new ApiError(404, "User not found");
   }
 
+  // ✅ Step 2: Upload new cover photo
+  const coverPhotoUrl = await uploadImage(coverPhotoFile.path);
+
+  // ✅ Step 3: Delete old cover photo if it exists
+  if (user.coverImage) {
+    await deleteImage(user.coverImage); // safe delete from Cloudinary
+  }
+
+  // ✅ Step 4: Save new cover photo
+  const updatedUser = await User.findByIdAndUpdate(userId,
+    { $set: { coverImage: coverPhotoUrl } },
+    { new: true } // Return the updated document
+  ).select("-password -__v -createdAt -updatedAt -refreshToken");
+
+  // ✅ Step 5: Send response
   return new ApiResponse(200, "Cover photo updated successfully", updatedUser).send(res);
 });
 

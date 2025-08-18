@@ -27,3 +27,20 @@ export const uploadImage = async (filePath) => {
     return null;
   }
 }
+
+export const deleteImage = async (fileUrl) => {
+  try {
+    if(!fileUrl) {
+      return null; 
+    }
+    const publicId = fileUrl.split('/').pop().split('.')[0]; // Extract public ID from URL
+    // If the url has transformation parameters etc then the better approach would be to have a public Id stored in the database like the url and then use that to delete the image.
+
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
+    console.log(`Image with public ID ${publicId} deleted successfully.`);
+    return true; // Return true if deletion was successful
+  } catch (error) {
+    console.error('Error deleting image from Cloudinary:', error.message);
+    return false; // Return false if deletion failed
+  }
+} 
