@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { User } from '../models/user.models.js';
@@ -377,3 +378,47 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
   return new ApiResponse(200, "Channel profile retrieved successfully", channelData).send(res);
 });
 
+export const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: { 
+        _id: new mongoose.Schema.Types.ObjectId(req.user._id)
+      }
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "ownerDetails",
+              pipeline: [
+                {
+                  $project: {
+                    userName: 1,
+                    fullName: 1,
+                    avatar: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $addFields: {
+              owner: { $arrayElemAt: ["$ownerDetails", 0] }
+            }
+          }
+        ]
+      }
+    }
+  ])
+
+
+  return new ApiResponse(200, "Watch history retrieved successfully", user[0].watchHistory).send(res);
+});

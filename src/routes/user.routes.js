@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, refreshAccessToken, updateUserAvatar, updateUserCoverPhoto, updateUserProfile } from "../controllers/user.controllers.js";
+import { loginUser, registerUser, logoutUser, refreshAccessToken, updateUserAvatar, updateUserCoverPhoto, updateUserProfile, getWatchHistory } from "../controllers/user.controllers.js";
 import { uploads } from '../middlewares/multer.middleware.js';
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -26,4 +26,9 @@ userRouter.route("/updateCoverPhoto").put(verifyJWT, uploads.single('coverPhoto'
 // This route is for updating the user's profile information
 userRouter.route("/updateProfile").put(verifyJWT, updateUserProfile);
 
-export { userRouter };
+// This route is for getting the user's watch history
+userRouter.route("/watchHistory").get(verifyJWT, getWatchHistory);
+
+export {userRouter};
+
+
