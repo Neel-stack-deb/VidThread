@@ -1,29 +1,103 @@
-#  is the first major backend I'll be working on 
+# Backend API for Video Platform
 
-I will share my thought process over here.
+This is a Node.js backend project for a video-sharing platform. It provides RESTful APIs for user authentication, profile management, video handling, and subscriptions.
 
-1. First I'll create all the files and follders that are needed to initialise a production level backend.
+## Features
 
-2. Installed nodemon to solve the restarting the server after every change problem.
+- **User Authentication:** Register, login, logout, JWT-based authentication, refresh tokens.
+- **Profile Management:** Update avatar, cover photo, and profile info.
+- **Video Management:** Upload, view, and manage videos.
+- **Subscriptions:** Subscribe/unsubscribe to channels.
+- **Cloudinary Integration:** Image upload and deletion.
+- **Error Handling:** Centralized error middleware.
+- **Secure Cookies:** HTTP-only and secure cookies for tokens.
 
-  # Instead of this:
-    node app.js
+## Tech Stack
 
-  # Use this:
-    nodemon app.js
+- Node.js
+- Express.js
+- MongoDB & Mongoose
+- JWT for authentication
+- Cloudinary for image storage
+- Multer for file uploads
 
-  changing the starting command to a custom script.
+## Folder Structure
 
-3. creating dotenv file and a gitignore file along with gitkeep file to commit empty files into the git.
+```
+src/
+  app.js                # Express app setup
+  constants.js          # App constants
+  index.js              # Entry point
+  controllers/          # Route controllers
+  db/                   # Database connection
+  middlewares/          # Auth, error, multer middlewares
+  models/               # Mongoose models
+  routes/               # Express routers
+  utils/                # Utility classes and functions
+```
 
-4. Connecting the MongoDB Atlas with aws server and gracefully handle its async nature with proper try catch handelling.
+## Getting Started
 
-5. calling the ConnectionToDB function and gracefully handle error. using then() handled what to do next by first starting the server and also making proper error handling codes for server related issues with server.on('error') and then SIGINT and SIGTERM OS signals by gracefully exiting the process by first stopping the server and disconnecting the database connection.
+### Prerequisites
 
-6. We should create multiple utility files which will have bundlers and standarized error handling as well as standardized API response code.
+- Node.js (v18+ recommended)
+- MongoDB instance
+- Cloudinary account
 
-7. added error handling middleware
+### Installation
 
-8. added Caludinary and multer middleware for file upload
+1. Clone the repository:
+   ```
+   git clone <your-repo-url>
+   cd BackEnd
+   ```
 
-9. created Routes folder and controller with app.use to connect everything.
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and add the following:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   ACCESS_TOKEN_SECRET=your_access_token_secret
+   ACCESS_TOKEN_EXPIRY=15m
+   REFRESH_TOKEN_SECRET=your_refresh_token_secret
+   REFRESH_TOKEN_EXPIRY=7d
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   CORS_ORIGIN=http://localhost:3000
+   ```
+
+### Running the Server
+
+```
+npm start
+```
+
+The server will run on the port specified in your environment variables or default to `5000`.
+
+## API Endpoints
+
+### User Routes
+
+- `POST /api/v1/users/register` — Register a new user
+- `POST /api/v1/users/login` — Login user
+- `POST /api/v1/users/logout` — Logout user
+- `POST /api/v1/users/Token-Refresh` — Refresh access token
+- `PUT /api/v1/users/updateAvatar` — Update user avatar
+- `PUT /api/v1/users/updateCoverPhoto` — Update user cover photo
+- `PUT /api/v1/users/updateProfile` — Update user profile
+
+### Video & Subscription Routes
+
+*(Add endpoints as implemented)*
+
+## License
+
+MIT
+
+## Author
+
+Debarshi
