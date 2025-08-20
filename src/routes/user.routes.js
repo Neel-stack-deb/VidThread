@@ -26,6 +26,7 @@ userRouter.route("/updateCoverPhoto").patch(verifyJWT, uploads.single('coverPhot
 // This route is for updating the user's profile information
 userRouter.route("/updateProfile").patch(verifyJWT, updateUserProfile);
 
+// This route is for getting the user's channel profile
 userRouter.route("/channel/:username").get(verifyJWT, getUserChannelProfile);
 
 // This route is for getting the user's watch history
