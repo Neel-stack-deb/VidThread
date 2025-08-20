@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, refreshAccessToken, updateUserAvatar, updateUserCoverPhoto, updateUserProfile, getWatchHistory } from "../controllers/user.controllers.js";
+import { loginUser, registerUser, logoutUser, refreshAccessToken, updateUserAvatar, updateUserCoverPhoto, updateUserProfile, getUserChannelProfile, getWatchHistory } from "../controllers/user.controllers.js";
 import { uploads } from '../middlewares/multer.middleware.js';
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -18,13 +18,15 @@ userRouter.route("Token-Refresh").post(refreshAccessToken);
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 
 // This route is for updating the user's avatar
-userRouter.route("/updateAvatar").put(verifyJWT, uploads.single('avatar'), updateUserAvatar);
+userRouter.route("/updateAvatar").patch(verifyJWT, uploads.single('avatar'), updateUserAvatar);
   
 // This route is for updating the user's cover photo
-userRouter.route("/updateCoverPhoto").put(verifyJWT, uploads.single('coverPhoto'), updateUserCoverPhoto);
+userRouter.route("/updateCoverPhoto").patch(verifyJWT, uploads.single('coverPhoto'), updateUserCoverPhoto);
 
 // This route is for updating the user's profile information
-userRouter.route("/updateProfile").put(verifyJWT, updateUserProfile);
+userRouter.route("/updateProfile").patch(verifyJWT, updateUserProfile);
+
+userRouter.route("/channel/:username").get(verifyJWT, getUserChannelProfile);
 
 // This route is for getting the user's watch history
 userRouter.route("/watchHistory").get(verifyJWT, getWatchHistory);
