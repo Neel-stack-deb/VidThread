@@ -1,14 +1,27 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, refreshAccessToken, updateUserAvatar, updateUserCoverPhoto, updateUserProfile, getUserChannelProfile, getWatchHistory } from "../controllers/user.controllers.js";
-import { uploads } from '../middlewares/multer.middleware.js';
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  refreshAccessToken,
+  updateUserAvatar,
+  updateUserCoverPhoto,
+  updateUserProfile,
+  getUserChannelProfile,
+  getWatchHistory,
+} from "../controllers/user.controllers.js";
+import { uploads } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const userRouter=new Router();
+const userRouter = new Router();
 
-userRouter.route("/register").post(uploads.fields([
-  { name: 'avatar', maxCount: 1 },
-  { name: 'coverPhoto', maxCount: 1 }
-]),registerUser);
+userRouter.route("/register").post(
+  uploads.fields([
+    { name: "avatar", maxCount: 1 },
+    { name: "coverPhoto", maxCount: 1 },
+  ]),
+  registerUser
+);
 
 userRouter.route("/login").post(loginUser);
 
@@ -18,10 +31,14 @@ userRouter.route("Token-Refresh").post(refreshAccessToken);
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 
 // This route is for updating the user's avatar
-userRouter.route("/updateAvatar").patch(verifyJWT, uploads.single('avatar'), updateUserAvatar);
-  
+userRouter
+  .route("/updateAvatar")
+  .patch(verifyJWT, uploads.single("avatar"), updateUserAvatar);
+
 // This route is for updating the user's cover photo
-userRouter.route("/updateCoverPhoto").patch(verifyJWT, uploads.single('coverPhoto'), updateUserCoverPhoto);
+userRouter
+  .route("/updateCoverPhoto")
+  .patch(verifyJWT, uploads.single("coverPhoto"), updateUserCoverPhoto);
 
 // This route is for updating the user's profile information
 userRouter.route("/updateProfile").patch(verifyJWT, updateUserProfile);
@@ -32,6 +49,4 @@ userRouter.route("/channel/:username").get(verifyJWT, getUserChannelProfile);
 // This route is for getting the user's watch history
 userRouter.route("/watchHistory").get(verifyJWT, getWatchHistory);
 
-export {userRouter};
-
-
+export { userRouter };

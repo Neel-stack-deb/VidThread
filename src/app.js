@@ -24,3 +24,4 @@ import { errorMiddleware } from './middlewares/error.middleware.js';
 app.use("/api/v1/users",userRouter);
 
 app.use(errorMiddleware);
+

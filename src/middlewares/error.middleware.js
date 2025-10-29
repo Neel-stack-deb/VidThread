@@ -1,6 +1,6 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 
-export const errorMiddleware = (err, _, res, _) => {
+export const errorMiddleware = (err, res) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
 
