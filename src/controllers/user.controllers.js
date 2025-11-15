@@ -322,43 +322,97 @@ export const updateUserCoverPhoto = asyncHandler(async (req, res) => {
 });
 
 export const getUserChannelProfile = asyncHandler(async (req, res) => {
-  const {username} = req.params;
-  if(!username) {
+  const { username } = req.params;
+  if (!username) {
     throw new ApiError(400, "Username is required");
   }
+  const userId = mongoose.Types.ObjectId.isValid(req.user._id)
+  ? mongoose.Types.ObjectId(req.user._id)
+  : req.user._id;
 
   const channel = await User.aggregate([
     {
-      $match: {username: username.toLowerCase()}
+      $match: { username: username.toLowerCase() }
     },
-    {
-      $lookup:  {
-        from: "subscriptions",
-        localField: "_id",
-        foreignField: "channel",
-        as: "subscribers"
-      }
-    },
+
+    // 1️⃣ subscriber count (how many users subscribed to this channel)
     {
       $lookup: {
         from: "subscriptions",
-        localField: "_id",
-        foreignField: "subscriber",
-        as: "subscriptions"
+        let: { channelId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$channel", "$$channelId"] }
+            }
+          },
+          { $count: "subscriberCount" }
+        ],
+        as: "subscriberCount"
       }
     },
+
+    // 2️⃣ subscription count (how many channels this user subscribes to)
+    {
+      $lookup: {
+        from: "subscriptions",
+        let: { subscriberId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$subscriber", "$$subscriberId"] }
+            }
+          },
+          { $count: "subscriptions" }
+        ],
+        as: "subscriptionCount"
+      }
+    },
+
+    // 3️⃣ is logged-in user subscribed to this channel?
+    {
+      $lookup: {
+        from: "subscriptions",
+        let: {
+          channelId: "$_id",
+          userId: userId
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$channel", "$$channelId"] },
+                  { $eq: ["$subscriber", "$$userId"] }
+                ]
+              }
+            }
+          },
+          { $limit: 1 }
+        ],
+        as: "isSubscribed"
+      }
+    },
+
+    // 4️⃣ flatten lookup results
     {
       $addFields: {
-        subscriberCount: { $size: "$subscribers" },
-        subscriptionCount: { $size: "$subscriptions" },
+        subscriberCount: {
+          $ifNull: [{ $arrayElemAt: ["$subscriberCount.subscriberCount", 0] }, 0]
+        },
+        subscriptionCount: {
+          $ifNull: [{ $arrayElemAt: ["$subscriptionCount.subscriptions", 0] }, 0]
+        },
         isSubscribed: {
-          $in: [req.user._id, "$subscribers.subscriber"]
+          $gt: [{ $size: "$isSubscribed" }, 0]
         }
       }
     },
+
+    // 5️⃣ final projection
     {
       $project: {
-        userName: 1,
+        username: 1,
         fullName: 1,
         email: 1,
         avatar: 1,
@@ -377,6 +431,7 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
   const channelData = channel[0];
   return new ApiResponse(200, "Channel profile retrieved successfully", channelData).send(res);
 });
+
 
 export const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
@@ -412,7 +467,7 @@ export const getWatchHistory = asyncHandler(async (req, res) => {
           {
             $addFields: {
               owner: { $arrayElemAt: ["$ownerDetails", 0] }
-            }
+            } 
           }
         ]
       }
